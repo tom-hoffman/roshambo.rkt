@@ -7,6 +7,10 @@
 (require test-engine/racket-tests)
 (require "shared.rkt")
 
+(define expand-choice (hash "r" "ROCK"
+                            "p" "PAPER"
+                            "s" "SCISSORS"))
+
 ;; The universe state is a list/pair of players.
 (struct player (iw choice) #:transparent) 
 
@@ -38,7 +42,7 @@
         [(= players 1)
          (make-bundle
           new-l
-          (map (lambda (i)
+          (map (lambda (i) ; make a function for this
                  (make-mail (player-iw i) "ROSHAMBO"))
                new-l)
           '())]
@@ -70,8 +74,6 @@
          (make-mail (player-iw loser) "LOST"))
    empty))
 
-
-
 ;; resolve-match :: (l :: List<Player>) -> Bundle
 (define (resolve-match l)
   (define p0 (list-ref l 0))
@@ -94,23 +96,19 @@
 
 ;; handle-msg :: (l :: List<Player>, client :: IWorld, msg :: String) -> Bundle
 ;; Processes messages from clients.
-(check-expect (handle-msg (list (player iworld1 "") (player iworld2 "")) iworld2 "p")
-              (make-bundle
-               (update-state (list (player iworld1 "") (player iworld2 "")) iworld2 "p")
-               empty
-               empty))
-(check-expect (handle-msg (list (player iworld1 "")) iworld2 "p")
-                          (make-bundle 
-                           (list (player iworld1 ""))
-                           empty
-                           empty))
+
 (define (handle-msg l client msg)
   (define new-state (update-state l client msg))
   (cond [(both-played? new-state) (resolve-match new-state)]
         [(start-playing? l) (make-bundle
                              new-state
-                             empty
+                             (list (make-mail client (hash-ref expand-choice msg)))
                              empty)]
+        [(and (not(start-playing? l)) (string=? msg "y")) (connect l client)]
+        [(and (not(start-playing? l)) (string=? msg "n")) (make-bundle
+                                                           l
+                                                           (list (make-mail client "QUIT"))
+                                                           empty)]
         [else (make-bundle
                l
                empty
@@ -172,5 +170,16 @@
                (list (player iworld2 "") (player iworld1 ""))
                (list (make-mail iworld3 "SORRY"))
                (list iworld3)))
+
+(check-expect (handle-msg (list (player iworld1 "") (player iworld2 "")) iworld2 "p")
+              (make-bundle
+               (update-state (list (player iworld1 "") (player iworld2 "")) iworld2 "p")
+               (list (make-mail iworld2 "PAPER"))
+               empty))
+(check-expect (handle-msg (list (player iworld1 "")) iworld2 "p")
+                          (make-bundle 
+                           (list (player iworld1 ""))
+                           empty
+                           empty))
 
 (test)
