@@ -57,7 +57,6 @@
       (place-image (text"Rematch? (y/n)" TEXT-SIZE "black") MID-X PROMPT-Y st)
       st))
 
-;; make y and n send a word.
 (define (key-event w key)
   (cond [(and (is-over? w) (string=? key "y")) (make-package w key)]
         [(and (is-over? w) (string=? key "n")) (make-package w key)]
