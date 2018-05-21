@@ -14,27 +14,41 @@
 ;; "WAITING"
 ;; "WON"        
 ;; "LOST"       
-;; "TIE"        
+;; "TIE"
+
 
 (struct ui (txt bg-color))
 (define status (hash
                 "CONNECTING" (ui (string-join (list "Connecting to" SERVER "...")) "gold")
                 "SORRY"      (ui (string-join (list "Connection rejected by" SERVER ".")) "red")
                 "LOBBY"      (ui "Waiting for opponent to join." "pink")
-                "ROSHAMBO"   (ui "Choose (r)ock, (p)aper or (s)cissors." "palegreen")))
+                "ROSHAMBO"   (ui "Choose (r)ock, (p)aper or (s)cissors." "palegreen")
+                "WON"        (ui "You won!" "hotpink")
+                "LOST"       (ui "You lost." "skyblue")
+                "TIE"        (ui "It is a tie." "wheat")))
                 
 (define WIDTH 500)
 (define HEIGHT 300)
+(define MID-X (/ WIDTH 2))
+(define PROMPT-Y (* HEIGHT (/ 2 3)))
 (define SCENE (empty-scene WIDTH HEIGHT))
 (define TEXT-SIZE 28)
 
+;; is-y-n :: (key :: String) -> Boolean
+(define (is-y-n? key)
+  (member key (list "y" "n")))
+
 (define (draw-gui w)
   (define u (hash-ref status w))
-  (overlay (text (ui-txt u) TEXT-SIZE "black")
-           (overlay (rectangle WIDTH HEIGHT "solid" (ui-bg-color u)) SCENE)))
+  (define st (overlay (text (ui-txt u) TEXT-SIZE "black")
+                      (overlay (rectangle WIDTH HEIGHT "solid" (ui-bg-color u))SCENE)))
+  (if (member w (list "WON" "LOST" "TIE"))
+      (place-image (text"Rematch? (y/n)" TEXT-SIZE "black") MID-X PROMPT-Y st)
+      st))
 
 (define (key-event w key)
-  w)
+  (cond [(and (string=? w "ROSHAMBO") (is-valid-choice? key)) (make-package w key)]
+        [else w]))
 
 (define (msg-event w msg)
   msg)
