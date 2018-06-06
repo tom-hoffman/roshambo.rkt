@@ -1,5 +1,10 @@
 #lang racket
 
+;; Simple roshambo game.
+;; Local version rock, paper, scissors.
+;; Not too exciting but useful for planning
+;; the more interesting networked version.
+
 (require 2htdp/universe)
 (require 2htdp/image)
 (require "shared.rkt")

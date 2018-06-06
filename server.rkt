@@ -2,25 +2,37 @@
 
 ;; Roshambo server.
 ;; Networked rock, paper, scissors.
+;;
+;; After two clients register, they can choose
+;; (r)ock, (p)aper or (s)cissors at their leisure.
+;; The server returns the winner and each has the
+;; option to play again.
 
 (require 2htdp/universe)
 (require test-engine/racket-tests)
-(require "shared.rkt")
+
+;; The universe state is a pair (list) of players.
+;; A player has an iWorld and a string indicating
+;; their choice -- "r", "p", "s" or "" (no choice).
+(struct player (iw choice) #:transparent) 
 
 (define expand-choice (hash "r" "ROCK"
                             "p" "PAPER"
                             "s" "SCISSORS"))
 
-;; The universe state is a list/pair of players.
-(struct player (iw choice) #:transparent) 
+(define VALID-CHOICES '("r" "p" "s"))
+;; is-valid-choice? :: (choice :: String) -> Boolean
+;; Only accept "r" "p" or "s".
+(define (is-valid-choice? choice)
+  (member choice VALID-CHOICES))
 
-;; start-playing :: (l :: List) -> Boolean
-;; Do we have two players?
+;; start-playing? :: (l :: List) -> Boolean
+;; If we have two players we can start.
 (define (start-playing? l)
   (= (length l) 2))
 
-;; played :: (Player) -> List/Boolean
-;; Has this player chosen?
+;; played? :: (Player) -> List/Boolean
+;; Has this player chosen already?
 (define (played? p)
   (is-valid-choice? (player-choice p)))
 
@@ -29,7 +41,14 @@
 (define (both-played? l)
   (= (length (filter played? l)) 2))
 
-;; connect :: (l :: List<player>, client :: IWorld) -> Bundle
+;; mail-everyone :: (l :: List<Player>, msg :: String) -> List<Mail>
+;; Prepares the same message to both players.
+(define (mail-everyone l msg)
+  (map (lambda (i)
+         (make-mail (player-iw i) msg))
+       l))
+
+;; connect :: (l :: List<Player>, client :: IWorld) -> Bundle
 ;; Checks the current number of players and adds one if appropriate.
 (define (connect l client)
   (define players (length l))
@@ -42,9 +61,7 @@
         [(= players 1)
          (make-bundle
           new-l
-          (map (lambda (i) ; make a function for this
-                 (make-mail (player-iw i) "ROSHAMBO"))
-               new-l)
+          (mail-everyone new-l "ROSHAMBO")
           '())]
         [(> players 1) 
          (make-bundle
@@ -66,15 +83,17 @@
            l)
       l))
 
-;; bundle-results :: (winner :: Player, loser :: Player) -> Bundle 
+;; bundle-results :: (winner :: Player, loser :: Player) -> Bundle
+;; Prepare remove the players and announce the winner and loser.  
 (define (bundle-results winner loser)
   (make-bundle
-   '() ; figure this out later
+   '()
    (list (make-mail (player-iw winner) "WON")
          (make-mail (player-iw loser) "LOST"))
    empty))
 
 ;; resolve-match :: (l :: List<Player>) -> Bundle
+;; Figure out who won.
 (define (resolve-match l)
   (define p0 (list-ref l 0))
   (define p0-choice (player-choice p0))
@@ -88,37 +107,42 @@
         [(and (string=? p1-choice "s") (string=? p0-choice "r")) (bundle-results p0 p1)]
         [else (make-bundle
                '()
-               (map (lambda (i)
-                      (make-mail (player-iw i) "TIE"))
-                    l)
+               (mail-everyone l "TIE")
                empty)]))
 
 
 ;; handle-msg :: (l :: List<Player>, client :: IWorld, msg :: String) -> Bundle
-;; Processes messages from clients.
+;; Processes messages from clients once game has started.
 
 (define (handle-msg l client msg)
   (define new-state (update-state l client msg))
-  (cond [(both-played? new-state) (resolve-match new-state)]
-        [(start-playing? l) (make-bundle
-                             new-state
-                             (list (make-mail client (hash-ref expand-choice msg)))
-                             empty)]
-        [(and (not(start-playing? l)) (string=? msg "y")) (connect l client)]
-        [(and (not(start-playing? l)) (string=? msg "n")) (make-bundle
-                                                           l
-                                                           (list (make-mail client "QUIT"))
-                                                           empty)]
-        [else (make-bundle
-               l
-               empty
-               empty)]))
+  (cond
+    ; if both have chosen, find the winner
+    [(both-played? new-state) (resolve-match new-state)]
+    ; if this is the first player, record his choice and mail it back to him.
+    [(start-playing? l) (make-bundle
+                         new-state
+                         (list (make-mail client (hash-ref expand-choice msg)))
+                         empty)]
+    ; these "y" and "n" messages come in reply to the restart prompt
+    [(and (not(start-playing? l)) (string=? msg "y")) (connect l client)]
+    [(and (not(start-playing? l)) (string=? msg "n")) (make-bundle
+                                                       l
+                                                       (list (make-mail client "QUIT"))
+                                                       empty)]
+    ; or do nothing
+    [else (make-bundle
+           l
+           empty
+           empty)]))
 
       
 (universe '()
           (on-new connect)
           (on-msg handle-msg))
 
+
+;; Tests.
 
 (check-expect (start-playing? (list (player iworld2 "") (player iworld1 "")))
               #t)
