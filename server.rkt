@@ -69,7 +69,7 @@
           (list (make-mail client "SORRY"))
           (list client))]))
 
-;; update-state :: (l :: List<Player, client :: IWorld, msg :: String -> State
+;; update-state :: (l :: List<Player>, client :: IWorld, msg :: String) -> State
 ;; Checks to see if the choice is valid,
 ;; then finds the right player based on the iWorld and sets the choice
 ;; if a choice has not already been made.

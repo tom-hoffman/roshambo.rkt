@@ -12,7 +12,8 @@ The best reference overall is the *Realm of Racket* book *plus*
 I wrote a simple game to get the feel of how the worlds (clients)
 communicate with the universe (server).  Since there aren't a lot of other easily
 findable examples using universe online, I thought I'd post my take as a hopefully
-useful example to others.
+useful example to others.  This is a first try, so the style and execution
+is probably not ideal, but hopefully helpful to another beginner.
 
 ## Gameplay
 
@@ -61,4 +62,16 @@ Possible client states are:
 ;; "TIE"        -- Tie.
 ```
 
+When a client takes a key input it checks to see if the input is relevant
+and if so, sends the current a package made up of the client world state and
+a message containing the key pressed.
+
+The server then processes the package and creates a bundle containing its
+new state, a list of mail messages to send to the clients and a list of
+any clients to drop.  I kept each of these bundle constructors split across
+three lines which helps to understand their three parts.
+
+Again the message sent to the client is a string containing its new state.
+
+Hope this helps!
 
