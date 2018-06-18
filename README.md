@@ -28,7 +28,7 @@ racket server.py
 racket client.py
 ```
 
-You can also launch multiple worlds from the interactions window in DrRacket:
+You can also run a server and launch multiple worlds from the interactions window in DrRacket:
 ```
 (launch-many-worlds (main "a") (main "b") (main "c"))
 ```
