@@ -63,13 +63,16 @@ Possible client states are:
 ```
 
 When a client takes a key input it checks to see if the input is relevant
-and if so, sends the current a package made up of the client world state and
+and if so, sends the server a package made up of the client world state and
 a message containing the key pressed.
 
 The server then processes the package and creates a bundle containing its
 new state, a list of mail messages to send to the clients and a list of
 any clients to drop.  I kept each of these bundle constructors split across
 three lines which helps to understand their three parts.
+
+The universe state is a pair (list) of players.  A player is made up of an iWorld
+and a string indicating their choice -- "r", "p", "s" or "" (no choice).
 
 Again the message sent to the client is a string containing its new state.
 
