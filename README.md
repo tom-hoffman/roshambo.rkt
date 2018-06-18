@@ -72,7 +72,7 @@ any clients to drop.  I kept each of these bundle constructors split across
 three lines which helps to understand their three parts.
 
 The universe state is a pair (list) of players.  A player is made up of an iWorld
-and a string indicating their choice -- "r", "p", "s" or "" (no choice).
+and a string indicating their choice -- "r", "p", "s", "y", "n" or "" (no choice).
 
 Again the message sent to the client is a string containing its new state.
 
