@@ -16,18 +16,16 @@
 ;; an actual network.
 (define SERVER LOCALHOST)
 
-;; World is just a string indicating state.
 ;; "CONNECTING" -- starting and trying to register.
 ;; "SORRY"      -- no available space on server.
-;; "LOBBY"    -- registered and waiting for an opponent.
-;; "ROSHAMBO"   -- Server waiting for choice.
-;; "WAITING"
-;; "ROCK"
-;; "PAPER"
-;; "SCISSORS"
-;; "WON"        
-;; "LOST"       
-;; "TIE"
+;; "LOBBY"      -- registered and waiting for an opponent.
+;; "ROSHAMBO"   -- waiting for the local client to choose.
+;; "ROCK"       -- chose rock, waiting for opponent.
+;; "PAPER"      -- chose paper, waiting for opponent.
+;; "SCISSORS"   -- chose scissors, waiting for opponent.
+;; "WON"        -- You won!
+;; "LOST"       -- You lost!
+;; "TIE"        -- Tie.
 
 ;; For each state we make a ui struct with a message
 ;; and corresponding color.
